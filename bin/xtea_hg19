@@ -1250,8 +1250,9 @@ if __name__ == '__main__':
         if b_case_control == False:
             gnrt_running_shell(sf_id, sf_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity,
                                s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
-                               smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume, b_execution_spec,
-                               b_n_cores_gnu_parallel)
+                               smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume,
+                               b_execution_spec=b_execution_spec,
+                               b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
 
         elif b_denovo==False:
             #if in case-control mode, then need to separate to two steps
@@ -1263,7 +1264,8 @@ if __name__ == '__main__':
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea,
                                spartition, stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume,
-                               b_execution_spec, b_n_cores_gnu_parallel)
+                               b_execution_spec=b_execution_spec,
+                               b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
 
         else:
             # if in case-control mode, then need to separate to two steps
@@ -1275,7 +1277,8 @@ if __name__ == '__main__':
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition,
                                stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume, b_denovo,
-                               b_execution_spec, b_n_cores_gnu_parallel)
+                               b_execution_spec=b_execution_spec,
+                               b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
         #run_pipeline(l_rep_type, sample_id, s_wfolder)
         #cp_compress_results(s_wfolder, l_rep_type, sample_id)
 

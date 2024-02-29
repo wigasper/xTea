@@ -539,6 +539,7 @@ if __name__ == '__main__':
     ####
         gnrt_running_shell(sf_id, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_rep_folder, spartition, stime, smemory,
                            ncores, sf_rmsk, sf_rep_cns, sf_ref_sva, i_min_copy_len, i_peak_win, sf_sbatch_sh, b_complex,
-                           b_fast_mode, b_lsf, b_slurm, b_asm_cmd, b_call_seq, b_clean, b_execution_spec,
-                           b_n_cores_gnu_parallel)
+                           b_fast_mode, b_lsf, b_slurm, b_asm_cmd, b_call_seq, b_clean,
+                           b_execution_spec=b_execution_spec,
+                           b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
     ####
