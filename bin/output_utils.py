@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from typing import Never, List
+from typing import List
 
 
-def write_serial_output(output_fp: Path, shell_script_fps: List[Path]) -> Never:
+def write_serial_output(output_fp: Path, shell_script_fps: List[Path]):
     with open(output_fp, "w") as out:
         out.write("#!/bin/bash\n\n")
 
@@ -13,7 +13,7 @@ def write_serial_output(output_fp: Path, shell_script_fps: List[Path]) -> Never:
 
 def write_gnu_parallel_output(
     output_fp: Path, shell_script_fps: List[Path], num_threads: int
-) -> Never:
+):
     with open(output_fp, "w") as out:
         out.write("#!/bin/bash\n\n")
 
