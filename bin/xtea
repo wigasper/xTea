@@ -13,6 +13,7 @@ from optparse import OptionParser
 import ntpath
 
 import output_utils
+import input_utils
 #import global_values
 
 ILLUMINA="illumina"
@@ -1219,7 +1220,6 @@ def parse_option():
                       dest="exec_spec",
                       type="string",
                       default="cluster",
-                      choices=["cluster", "serial", "parallel"],
                       help="Execution specification for shell script output: 'cluster' will create output "
                            "for a Slurm/LSF job, 'serial' will create a shell script for serial execution, "
                             "'parallel' will create a shell script for parallel execution using GNU parallel")
@@ -1292,6 +1292,8 @@ if __name__ == '__main__':
         b_denovo=options.denovo
         b_execution_spec = options.exec_spec
         b_n_cores_gnu_parallel = options.n_cores_gnu_parallel
+
+        input_utils.validate_execution_spec(b_execution_spec)
     ####
 
         if s_wfolder[-1]!="/":

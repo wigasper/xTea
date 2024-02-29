@@ -10,6 +10,8 @@ from optparse import OptionParser
 import ntpath
 
 import output_utils
+import input_utils
+
 #import global_values
 
 S_VERSION="v0.1"
@@ -400,6 +402,7 @@ def run_pipeline(l_rep_type, sample_id, s_wfolder):
         cmd="sh {0}".format(sf_sbatch_sh_rep)
         run_cmd(cmd)
 
+
 ####
 def parse_option():
     parser = OptionParser()
@@ -446,7 +449,6 @@ def parse_option():
                       dest="exec_spec",
                       type="string",
                       default="cluster",
-                      choices=["cluster", "serial", "parallel"],
                       help="Execution specification for shell script output: 'cluster' will create output "
                            "for a Slurm/LSF job, 'serial' will create a shell script for serial execution, "
                             "'parallel' will create a shell script for parallel execution using GNU parallel")
@@ -507,6 +509,8 @@ if __name__ == '__main__':
         i_peak_win = options.win #maximum window size when try to cluster the breakpoints
         b_execution_spec = options.exec_spec
         b_n_cores_gnu_parallel = options.n_cores_gnu_parallel
+
+        input_utils.validate_execution_spec(b_execution_spec)
 
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
