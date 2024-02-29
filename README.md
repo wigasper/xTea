@@ -188,6 +188,8 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 				--purity: tumor purity (by default 0.45);
 				--blacklist: blacklist file in bed format. Listed regions will be filtered out;
 				--slurm: runs using the slurm scheduler. Generates a script header fit for this scheduler;
+				--execution-spec: Default is "slurm"; options are "slurm", "serial", "parallel". This affects the execution shellscript for all samples (the `-o` file path). "slurm" (default) will call `sbatch` for each file. "serial" will just run each sample shell script in serial (by calling `bash $sample_shell_script_file_path`). "parallel" will pipe shell scripts into `gnu parallel` to run in parallel;
+				--n-cores-gnu-parallel: If running `--execution spec parallel`, this will define the number of cores to use for running samples in parallel. Note that this will have a multiplicative effect with the `-n` argument (i.e., `-n 8 --n-core-gnu-parallel 10` will use 80 cores);
 			
 			The following cutoffs will be automatically set based on read depth (and also purity in the case of a tumor sample); 
 			These parameters have been thoroughly tuned based on the use of benchmark data and also on a large cohort analysis. 
