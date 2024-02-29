@@ -8,6 +8,8 @@ import os
 from subprocess import *
 from optparse import OptionParser
 import ntpath
+
+import output_utils
 #import global_values
 
 S_VERSION="v0.1"
@@ -289,7 +291,9 @@ def get_sample_id(sf_bam):
 ####gnrt the running shell
 def gnrt_running_shell(sf_ids, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_rep_folder, spartition, stime, smemory,
                        ncores, sf_rmsk, sf_rep_cns, sf_ref_sva, i_min_copy_len, i_peak_win, sf_submit_sh, b_complex,
-                       b_fast_mode=False, b_lsf=False, b_slurm=False, b_asm_cmd=False, b_call_seq=False, b_clean=False):
+                       b_fast_mode=False, b_lsf=False, b_slurm=False, b_asm_cmd=False, b_call_seq=False, b_clean=False,
+                       b_execution_spec: str="cluster",
+                       b_n_cores_gnu_parallel: int=1):
     if s_wfolder[-1] != "/":
         s_wfolder += "/"
     if os.path.exists(s_wfolder) == False:
@@ -342,13 +346,18 @@ def gnrt_running_shell(sf_ids, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_re
                        sf_sample_folder)
         for tmp_sh in l_tmp_sh:
             l_sh.append(tmp_sh)
-    with open(sf_submit_sh, "w") as fout_submit:
-        fout_submit.write("#!/bin/bash\n\n")
-        for s_sh in l_sh:
-            if b_lsf==False:
-                fout_submit.write("sbatch < "+s_sh+"\n")
-            else:
-                fout_submit.write("bsub < " + s_sh + "\n")
+    if b_execution_spec == "cluster":
+        with open(sf_submit_sh, "w") as fout_submit:
+            fout_submit.write("#!/bin/bash\n\n")
+            for s_sh in l_sh:
+                if b_lsf==False:
+                    fout_submit.write("sbatch < "+s_sh+"\n")
+                else:
+                    fout_submit.write("bsub < " + s_sh + "\n")
+    elif b_execution_spec == "serial":
+        output_utils.write_serial_output(sf_submit_sh, l_sh)
+    elif b_execution_spec == "parallel":
+        output_utils.write_gnu_parallel_output(sf_submit_sh, l_sh, b_n_cores_gnu_parallel)
 ####
 
 ####Input:
@@ -433,7 +442,20 @@ def parse_option():
     parser.add_option("--fast",
                       action="store_true", dest="fast", default=False,
                       help="This is the fast mode, which may sacrifice the sensitivity")
-
+    parser.add_option("--execution-spec",
+                      dest="exec_spec",
+                      type="string",
+                      default="cluster",
+                      choices=["cluster", "serial", "parallel"],
+                      help="Execution specification for shell script output: 'cluster' will create output "
+                           "for a Slurm/LSF job, 'serial' will create a shell script for serial execution, "
+                            "'parallel' will create a shell script for parallel execution using GNU parallel")
+    parser.add_option("--n-cores-gnu-parallel",
+                      dest="n_cores_gnu_parallel",
+                      type="int",
+                      default=1,
+                      help="Number of cores to use for parallel execution using GNU parallel. Only "
+                           "applicable if --execution-spec is set to 'parallel'")
 
     parser.add_option("-p", "--path", dest="wfolder", type="string", default="./",
                       help="Working folder")
@@ -483,6 +505,8 @@ if __name__ == '__main__':
         b_call_seq = options.mei_no_asm
         b_clean=options.clean
         i_peak_win = options.win #maximum window size when try to cluster the breakpoints
+        b_execution_spec = options.exec_spec
+        b_n_cores_gnu_parallel = options.n_cores_gnu_parallel
 
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
@@ -511,5 +535,6 @@ if __name__ == '__main__':
     ####
         gnrt_running_shell(sf_id, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_rep_folder, spartition, stime, smemory,
                            ncores, sf_rmsk, sf_rep_cns, sf_ref_sva, i_min_copy_len, i_peak_win, sf_sbatch_sh, b_complex,
-                           b_fast_mode, b_lsf, b_slurm, b_asm_cmd, b_call_seq, b_clean)
+                           b_fast_mode, b_lsf, b_slurm, b_asm_cmd, b_call_seq, b_clean, b_execution_spec,
+                           b_n_cores_gnu_parallel)
     ####
