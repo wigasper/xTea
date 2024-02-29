@@ -23,5 +23,5 @@ def write_gnu_parallel_output(
         out.write(f"shell_script_fps=({array_elements})\n\n")
 
         out.write(
-            f'printf "%s\\n" "${{script_paths[@]}}" | parallel -j {num_threads} bash {{}}'
+            f'printf "%s\\n" "${{shell_script_fps[@]}}" | parallel -j {num_threads} bash {{}}'
         )
