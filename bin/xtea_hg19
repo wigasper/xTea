@@ -5,6 +5,9 @@ from subprocess import *
 from optparse import OptionParser
 import ntpath
 
+import output_utils
+import input_utils
+
 #import global_values
 ILLUMINA="illumina"
 X10="10X"
@@ -776,7 +779,10 @@ def get_sample_id(sf_bam):
 ####gnrt the running shell
 def gnrt_running_shell(sf_ids, sf_bams, sf_10X_bams, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity, s_wfolder,
                        sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
-                       smemory, ncores, sf_submit_sh, sf_case_control_bam_list="null", b_lsf=False, b_slurm=False, b_resume=False, b_denovo=False):
+                       smemory, ncores, sf_submit_sh, sf_case_control_bam_list="null", b_lsf=False,
+                       b_slurm=False, b_resume=False, b_denovo=False,
+                       b_execution_spec: str="cluster",
+                       b_n_cores_gnu_parallel: int=1):
     if s_wfolder[-1] != "/":
         s_wfolder += "/"
     if os.path.exists(s_wfolder) == False:
@@ -869,13 +875,18 @@ def gnrt_running_shell(sf_ids, sf_bams, sf_10X_bams, l_rep_type, b_mosaic, b_use
                            sf_sample_folder, rep_type)
             for tmp_sh in l_tmp_sh:
                 l_sh.append(tmp_sh)
-    with open(sf_submit_sh, "w") as fout_submit:
-        fout_submit.write("#!/bin/bash\n\n")
-        for s_sh in l_sh:
-            if b_lsf == False:
-                fout_submit.write("sbatch < " + s_sh + "\n")
-            else:
-                fout_submit.write("bsub < "+s_sh+"\n")
+    if b_execution_spec == "cluster":
+        with open(sf_submit_sh, "w") as fout_submit:
+            fout_submit.write("#!/bin/bash\n\n")
+            for s_sh in l_sh:
+                if b_lsf == False:
+                    fout_submit.write("sbatch < " + s_sh + "\n")
+                else:
+                    fout_submit.write("bsub < "+s_sh+"\n")
+    elif b_execution_spec == "serial":
+        output_utils.write_serial_output(sf_submit_sh, l_sh)
+    elif b_execution_spec == "parallel":
+        output_utils.write_gnu_parallel_output(sf_submit_sh, l_sh, b_n_cores_gnu_parallel)
 ####
 
 ####Input:
@@ -1114,6 +1125,19 @@ def parse_option():
                       help="Which queue to run the job")
     parser.add_option("-t", "--time", dest="time", type="string",default="0-15:00",
                       help="Time limit")
+    parser.add_option("--execution-spec",
+                      dest="exec_spec",
+                      type="string",
+                      default="cluster",
+                      help="Execution specification for shell script output: 'cluster' will create output "
+                           "for a Slurm/LSF job, 'serial' will create a shell script for serial execution, "
+                            "'parallel' will create a shell script for parallel execution using GNU parallel")
+    parser.add_option("--n-cores-gnu-parallel",
+                      dest="n_cores_gnu_parallel",
+                      type="int",
+                      default=1,
+                      help="Number of cores to use for parallel execution using GNU parallel. Only "
+                           "applicable if --execution-spec is set to 'parallel'")
 
     parser.add_option("-p", "--path", dest="wfolder", type="string",
                       help="Working folder")
@@ -1173,6 +1197,10 @@ if __name__ == '__main__':
         b_slurm=options.slurm
         b_resume=options.resume
         b_denovo = options.denovo
+        b_execution_spec = options.exec_spec
+        b_n_cores_gnu_parallel = options.n_cores_gnu_parallel
+
+        input_utils.validate_execution_spec(b_execution_spec)
 
         s_wfolder = os.path.abspath(s_wfolder)
 
@@ -1224,7 +1252,9 @@ if __name__ == '__main__':
         if b_case_control == False:
             gnrt_running_shell(sf_id, sf_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity,
                                s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
-                               smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume)
+                               smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume,
+                               b_execution_spec=b_execution_spec,
+                               b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
 
         elif b_denovo==False:
             #if in case-control mode, then need to separate to two steps
@@ -1235,7 +1265,9 @@ if __name__ == '__main__':
             #first, run the jobs seperately for all the case and control samples
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea,
-                               spartition, stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume)
+                               spartition, stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume,
+                               b_execution_spec=b_execution_spec,
+                               b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
 
         else:
             # if in case-control mode, then need to separate to two steps
@@ -1246,7 +1278,9 @@ if __name__ == '__main__':
             # first, run the jobs seperately for all the case and control samples
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition,
-                               stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume, b_denovo)
+                               stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume, b_denovo,
+                               b_execution_spec=b_execution_spec,
+                               b_n_cores_gnu_parallel=b_n_cores_gnu_parallel)
         #run_pipeline(l_rep_type, sample_id, s_wfolder)
         #cp_compress_results(s_wfolder, l_rep_type, sample_id)
 
