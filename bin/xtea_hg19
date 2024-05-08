@@ -1202,6 +1202,8 @@ if __name__ == '__main__':
 
         input_utils.validate_execution_spec(b_execution_spec)
 
+        s_wfolder = os.path.abspath(s_wfolder)
+
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
         if os.path.exists(s_wfolder) == False:
